@@ -35,7 +35,7 @@ def initializeWebdriver():
   wait=WebDriverWait(driver, 10)
   return (driver, wait)
 
-# Pull required conversion values
+# Pull required conversion values (retry until successful haha)
 @retry()
 def getConversionValues(fiats=constants.FIATS, preferredFIAT=constants.PREFERRED_FIAT, publicFIAT = constants.PUBLIC_FIAT, contract=constants.CONTRACT_ADDRESS):
   driver, wait = initializeWebdriver()

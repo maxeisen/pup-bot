@@ -9,7 +9,7 @@ DELTA_DIP_THRESHOLD = -4
 RALLY_PHRASES = [
   "Hold on tight - we're going to the moon! 🌕",
   "The rocket ship is taking off! 🚀",
-  "The next SHIB is here! 🐶"
+  "The next SHIB is here! 🐶",
   "We're taking off! Don't get left behind! 📈",
   "Pup pup and away! 🚀",
   "Strap in puppies - the rocket ship has taken off! 🚀",
@@ -26,7 +26,7 @@ STABLE_PHRASES = [
 DIP_PHRASES = [
   "Get it while it's cheap! 🤑",
   "Buy the dip! 📉📈🚀",
-  "HODL puppies! 🐶",
+  "Keep HODLing puppies! 🐶",
   "Time to buy up some more! 😎",
   "This is the time to buy! 🤑",
   "Don't miss out on this fire sale! 🔥🏷"
