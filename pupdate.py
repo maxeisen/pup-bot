@@ -102,7 +102,6 @@ def main():
 
   positionValue = str('{0:.2f}'.format(secrets.PERSONAL_HOLDINGS/(ethToPUP/ethToPrefFIAT)))
   positionReport = "Your $PUP is worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before Gas fees"
-  print(positionReport)
 
   postTweet(priceReport)
   sendDirectMessage(positionReport, recipients=[secrets.BOT_ID])
