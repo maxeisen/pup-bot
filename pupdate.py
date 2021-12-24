@@ -66,8 +66,8 @@ def generatePriceReport(delta, currentReferenceValue):
   deltaStatement = plusMinus+str('{0:.2f}'.format(abs(delta)))+"% since last pupdate. "
   if (delta < constants.DELTA_DIP_THRESHOLD):
     closingStatement = random.choice(constants.DIP_PHRASES)
-  elif (delta > constants.DELTA_HYPE_THRESHOLD):
-    closingStatement = random.choice(constants.HYPE_PHRASES)
+  elif (delta > constants.DELTA_RALLY_THRESHOLD):
+    closingStatement = random.choice(constants.RALLY_PHRASES)
   else:
     closingStatement = random.choice(constants.STABLE_PHRASES)
   priceReport = priceStatement+deltaStatement+closingStatement+" #PuppyCoin"
