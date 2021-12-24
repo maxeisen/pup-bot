@@ -1,0 +1,6 @@
+twilio
+selenium
+tweepy
+requests
+webdriver-manager
+retry
