@@ -4,6 +4,8 @@ FIATS = 'CAD,USD'
 PREFERRED_FIAT = 'CAD'
 PUBLIC_FIAT = 'USD'
 CONTRACT_ADDRESS = '0x2696Fc1896F2D5F3DEAA2D91338B1D2E5f4E1D44'
+DELTA_HYPE_THRESHOLD = 6
+DELTA_DIP_THRESHOLD = -4
 HYPE_PHRASES = [
   "Hold on tight - we're going to the moon! 🌕",
   "The rocket ship is taking off! 🚀",

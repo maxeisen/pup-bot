@@ -64,9 +64,9 @@ def generatePriceReport(delta, currentReferenceValue):
   priceStatement = "1 million $PUP is currently worth $"+currentReferenceValue+" "+constants.PUBLIC_FIAT+". "
   plusMinus = 'Up ' if (delta > 0) else 'Down '
   deltaStatement = plusMinus+str('{0:.2f}'.format(abs(delta)))+"% since last pupdate. "
-  if (delta < -2):
+  if (delta < constants.DELTA_DIP_THRESHOLD):
     closingStatement = random.choice(constants.DIP_PHRASES)
-  elif (delta > 10):
+  elif (delta > constants.DELTA_HYPE_THRESHOLD):
     closingStatement = random.choice(constants.HYPE_PHRASES)
   else:
     closingStatement = random.choice(constants.STABLE_PHRASES)
