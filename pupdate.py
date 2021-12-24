@@ -101,14 +101,14 @@ def main():
   priceReport = generatePriceReport(delta, currentReferenceValue)
 
   positionValue = str('{0:.2f}'.format(secrets.PERSONAL_HOLDINGS/(ethToPUP/ethToPrefFIAT)))
-  positionReport = "Your $PUP is worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before Gas fees"
+  positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
 
   postTweet(priceReport)
   sendDirectMessage(positionReport, recipients=[secrets.BOT_ID])
-  if (delta >= secrets.ALERT_DELTA_THRESHOLD):
-    personalDeltaStatement = ' - up '+str('{0:.2f}'.format(delta))+"% in the last hour!"
-    sendText(positionReport+personalDeltaStatement)
-    sendDirectMessage(positionReport+personalDeltaStatement)
+  if ((delta >= secrets.DELTA_ALERT_UPPER_THRESHOLD) or (delta <= secrets.DELTA_ALERT_LOWER_THRESHOLD)):
+    personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
+    sendText(personalDeltaStatement+positionReport)
+    sendDirectMessage(personalDeltaStatement+positionReport)
 
 if __name__ == "__main__":
   main()
