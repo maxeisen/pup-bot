@@ -4,3 +4,6 @@ tweepy
 requests
 webdriver-manager
 retry
+matplotlib
+numpy
+pillow

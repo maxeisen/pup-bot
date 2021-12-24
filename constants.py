@@ -4,6 +4,8 @@ FIATS = 'CAD,USD'
 PREFERRED_FIAT = 'CAD'
 PUBLIC_FIAT = 'USD'
 CONTRACT_ADDRESS = '0x2696Fc1896F2D5F3DEAA2D91338B1D2E5f4E1D44'
+EST_CLOCK_TIMES = ['12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm', '11pm']
+CLOCK_TIMES = ['7pm', '8pm', '9pm', '10pm', '11pm', '12am', '1am', '2am', '3am', '4am', '5am', '6am', '7am', '8am', '9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm']
 DELTA_RALLY_THRESHOLD = 6
 DELTA_DIP_THRESHOLD = -4
 RALLY_PHRASES = [
@@ -26,7 +28,7 @@ STABLE_PHRASES = [
 DIP_PHRASES = [
   "Get it while it's cheap! 🤑",
   "Buy the dip! 📉📈🚀",
-  "Keep HODLing puppies! 🐶",
+  "HODL tight puppies! 🐶",
   "Time to buy up some more! 😎",
   "This is the time to buy! 🤑",
   "Don't miss out on this fire sale! 🔥🏷"

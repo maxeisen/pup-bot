@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from datetime import datetime
 from twilio.rest import Client
 from retry import retry
 import tweepy
@@ -13,7 +12,6 @@ import requests
 import random
 import constants
 import secrets
-from pricechart import generatePriceChart
 
 # Authenticate and initialize Tweepy instance 
 def initializeTweepy():
@@ -55,19 +53,11 @@ def getConversionValues(fiats=constants.FIATS, preferredFIAT=constants.PREFERRED
   return (ethToPubFIAT, ethToPrefFIAT, ethToPUP)
 
 # Get previous value of 1000000 PUP from last Tweet
-def getPreviousPrices():
+def getLastReferenceValue():
   t = initializeTweepy()
-  prices = []
-  hours = []
-  lastTenTweets = t.user_timeline(user_id=secrets.BOT_ID, count=9)
-  lastTweet = lastTenTweets[0]
-  for i in reversed(lastTenTweets):
-    prices.append(float((i.text.split('$')[2]).split(' ')[0]))
-    tweetTime = i.created_at
-    tweetTimeIndex = int(tweetTime.hour)
-    hours.append(constants.CLOCK_TIMES[tweetTimeIndex])
+  lastTweet = t.user_timeline(user_id=secrets.BOT_ID, count=1)[0]
   lastReferencePrice = float((lastTweet.text.split('$')[2]).split(' ')[0])
-  return lastReferencePrice, hours, prices
+  return lastReferencePrice
 
 # Generate full price report statement
 def generatePriceReport(delta, currentReferenceValue):
@@ -84,14 +74,10 @@ def generatePriceReport(delta, currentReferenceValue):
   return(priceReport)
 
 # Post tweet
-def postTweet(tweet, image=None):
+def postTweet(tweet):
   t = initializeTweepy()
-  if image:
-    t.update_status_with_media(status=tweet, filename=image)
-    print("Tweeted with price chart: "+tweet)
-  else:
-    t.update_status(tweet)
-    print("Tweeted: "+tweet)
+  t.update_status(tweet)
+  print("Tweeted: "+tweet)
 
 # Send text message
 def sendText(message):
@@ -109,19 +95,15 @@ def sendDirectMessage(message, recipients=secrets.RECIPIENT_IDS):
 
 def main():
   ethToPubFIAT, ethToPrefFIAT, ethToPUP = getConversionValues()
-  lastReferenceValue, hours, prices = getPreviousPrices()
+  lastReferenceValue = getLastReferenceValue()
   currentReferenceValue = str('{0:.2f}'.format(constants.REFERENCE_AMOUNT/(ethToPUP/ethToPubFIAT)))
-  prices.append(float(currentReferenceValue))
-  hours.append(constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))])
   delta = ((float(currentReferenceValue)-lastReferenceValue)/lastReferenceValue)*100
-  
-  priceChart = generatePriceChart(hours, prices)
   priceReport = generatePriceReport(delta, currentReferenceValue)
 
   positionValue = str('{0:.2f}'.format(secrets.PERSONAL_HOLDINGS/(ethToPUP/ethToPrefFIAT)))
   positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
 
-  postTweet(priceReport, image=priceChart)
+  postTweet(priceReport)
   sendDirectMessage(positionReport, recipients=[secrets.BOT_ID])
   if ((delta >= secrets.DELTA_ALERT_UPPER_THRESHOLD) or (delta <= secrets.DELTA_ALERT_LOWER_THRESHOLD)):
     personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
