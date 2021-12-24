@@ -62,7 +62,7 @@ def getLastReferenceValue():
 # Generate full price report statement
 def generatePriceReport(delta, currentReferenceValue):
   plusMinus = 'Up ' if (delta > 0) else 'Down '
-  deltaStatement = plusMinus+str('{0:.2f}'.format(delta))+"% since last update. "
+  deltaStatement = plusMinus+str('{0:.2f}'.format(delta))+"% since last pupdate. "
   priceStatement = "1 million $PUP is currently worth $"+currentReferenceValue+" "+constants.PUBLIC_FIAT+". "
   if (delta < -2):
     closingStatement = random.choice(constants.DIP_PHRASES)
