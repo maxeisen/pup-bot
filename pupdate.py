@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -14,6 +15,9 @@ import requests
 import random
 import constants
 from pricechart import generatePriceChart
+
+# Load environment variables
+load_dotenv()
 
 # Authenticate and initialize Tweepy instance 
 def initializeTweepy():
