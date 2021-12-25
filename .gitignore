@@ -1,6 +1,6 @@
 .env
 secrets.py
-/pricecharts/
+pricecharts/pricechart*
 /venv/
 /.vscode/
 /__pycache__/
