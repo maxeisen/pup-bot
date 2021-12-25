@@ -36,8 +36,11 @@ def initializeWebdriver():
   options=Options()
   options.add_argument('--headless')
   options.add_argument('--disable-gpu')
-  s=Service(ChromeDriverManager().install())
-  driver=webdriver.Chrome(service=s, options=options)
+  if (os.environ.get('ENVIRONMENT') == 'prod'):
+    driver=webdriver.Chrome(executable_path=os.environ.get('CHROMEDRIVER_PATH'))
+  else:
+    s=Service(ChromeDriverManager().install())
+    driver=webdriver.Chrome(service=s, options=options)
   wait=WebDriverWait(driver, 10)
   return (driver, wait)
 
