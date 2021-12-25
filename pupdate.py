@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -13,19 +14,21 @@ import tweepy
 import requests
 import random
 import constants
-import secrets
 from pricechart import generatePriceChart
+
+# Load environment variables
+load_dotenv()
 
 # Authenticate and initialize Tweepy instance 
 def initializeTweepy():
-  auth=tweepy.OAuthHandler(secrets.API_KEY, secrets.API_KEY_SECRET)
-  auth.set_access_token(secrets.ACCESS_TOKEN, secrets.ACCESS_TOKEN_SECRET)
+  auth=tweepy.OAuthHandler(os.getenv('API_KEY'), os.getenv('API_KEY_SECRET'))
+  auth.set_access_token(os.getenv('ACCESS_TOKEN'), os.getenv('ACCESS_TOKEN_SECRET'))
   t=tweepy.API(auth)
   return t
 
 # Authenticate and initialize Twilio instance
 def initializeTwilio():
-  client=Client(secrets.TWILIO_SID, secrets.TWILIO_SECRET)
+  client=Client(os.getenv('TWILIO_SID'), os.getenv('TWILIO_SECRET'))
   return client
 
 # Initialize webdriver
@@ -60,7 +63,7 @@ def getPreviousPrices():
   t = initializeTweepy()
   prices = []
   hours = []
-  lastTenTweets = t.user_timeline(user_id=secrets.BOT_ID, count=9)
+  lastTenTweets = t.user_timeline(user_id=os.getenv('BOT_ID'), count=9)
   lastTweet = lastTenTweets[0]
   for i in reversed(lastTenTweets):
     prices.append(float((i.text.split('$')[2]).split(' ')[0]))
@@ -97,12 +100,12 @@ def postTweet(tweet, image=None):
 # Send text message
 def sendText(message):
   client = initializeTwilio()
-  for num in secrets.RECIPIENT_NUMBERS:
-    client.messages.create(body=message,from_=secrets.TWILIO_PHONE,to=num)
+  for num in (os.getenv('RECIPIENT_NUMBERS')).split(','):
+    client.messages.create(body=message,from_=os.getenv('TWILIO_PHONE'),to=num)
     print("Sent to "+num+": " + message)
 
 # Send direct message on Twitter
-def sendDirectMessage(message, recipients=secrets.RECIPIENT_IDS):
+def sendDirectMessage(message, recipients=(os.getenv('RECIPIENT_IDS')).split(',')):
   t = initializeTweepy()
   for uid in recipients:
     t.send_direct_message(uid, message)
@@ -119,12 +122,12 @@ def main():
   priceChart = generatePriceChart(hours, prices)
   priceReport = generatePriceReport(delta, currentReferenceValue)
 
-  positionValue = str('{0:.2f}'.format(secrets.PERSONAL_HOLDINGS/(ethToPUP/ethToPrefFIAT)))
+  positionValue = str('{0:.2f}'.format(int(os.getenv('PERSONAL_HOLDINGS'))/(ethToPUP/ethToPrefFIAT)))
   positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
 
   postTweet(priceReport, image=priceChart)
-  sendDirectMessage(positionReport, recipients=[secrets.BOT_ID])
-  if ((delta >= secrets.DELTA_ALERT_UPPER_THRESHOLD) or (delta <= secrets.DELTA_ALERT_LOWER_THRESHOLD)):
+  sendDirectMessage(positionReport, recipients=[os.getenv('BOT_ID')])
+  if ((delta >= int(os.getenv('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.getenv('DELTA_ALERT_LOWER_THRESHOLD')))):
     personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
     sendText(personalDeltaStatement+positionReport)
     sendDirectMessage(personalDeltaStatement+positionReport)
