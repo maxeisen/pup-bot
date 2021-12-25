@@ -72,7 +72,7 @@ def getPreviousPrices():
     prices.append(float((i.text.split('$')[2]).split(' ')[0]))
     tweetTime = i.created_at
     tweetTimeIndex = int(tweetTime.hour)
-    hours.append(constants.CLOCK_TIMES[tweetTimeIndex])
+    hours.append(constants.UTC_CLOCK_TIMES[tweetTimeIndex])
   lastReferencePrice = float((lastTweet.text.split('$')[2]).split(' ')[0])
   return lastReferencePrice, hours, prices
 
@@ -119,7 +119,8 @@ def main():
   lastReferenceValue, hours, prices = getPreviousPrices()
   currentReferenceValue = str('{0:.2f}'.format(constants.REFERENCE_AMOUNT/(ethToPUP/ethToPubFIAT)))
   prices.append(float(currentReferenceValue))
-  hours.append(constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))])
+  currentHour = constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))] if (os.environ.get('ENVIRONMENT') == 'dev') else constants.UTC_CLOCK_TIMES[int(datetime.now().strftime("%H"))]
+  hours.append(currentHour)
   delta = ((float(currentReferenceValue)-lastReferenceValue)/lastReferenceValue)*100
   
   priceChart = generatePriceChart(hours, prices)
