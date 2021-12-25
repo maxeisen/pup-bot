@@ -21,8 +21,8 @@ load_dotenv()
 
 # Authenticate and initialize Tweepy instance 
 def initializeTweepy():
-  auth=tweepy.OAuthHandler(os.getenv('API_KEY'), os.getenv('API_KEY_SECRET'))
-  auth.set_access_token(os.getenv('ACCESS_TOKEN'), os.getenv('ACCESS_TOKEN_SECRET'))
+  auth=tweepy.OAuthHandler(os.getenv('TWITTER_API_KEY'), os.getenv('TWITTER_API_KEY_SECRET'))
+  auth.set_access_token(os.getenv('TWITTER_ACCESS_TOKEN'), os.getenv('TWITTER_ACCESS_TOKEN_SECRET'))
   t=tweepy.API(auth)
   return t
 
@@ -63,7 +63,7 @@ def getPreviousPrices():
   t = initializeTweepy()
   prices = []
   hours = []
-  lastTenTweets = t.user_timeline(user_id=os.getenv('BOT_ID'), count=9)
+  lastTenTweets = t.user_timeline(user_id=os.getenv('TWITTER_BOT_ID'), count=9)
   lastTweet = lastTenTweets[0]
   for i in reversed(lastTenTweets):
     prices.append(float((i.text.split('$')[2]).split(' ')[0]))
@@ -100,12 +100,12 @@ def postTweet(tweet, image=None):
 # Send text message
 def sendText(message):
   client = initializeTwilio()
-  for num in (os.getenv('RECIPIENT_NUMBERS')).split(','):
+  for num in (os.getenv('TWILIO_RECIPIENT_NUMBERS')).split(','):
     client.messages.create(body=message,from_=os.getenv('TWILIO_PHONE'),to=num)
     print("Sent to "+num+": " + message)
 
 # Send direct message on Twitter
-def sendDirectMessage(message, recipients=(os.getenv('RECIPIENT_IDS')).split(',')):
+def sendDirectMessage(message, recipients=(os.getenv('TWITTER_RECIPIENT_IDS')).split(',')):
   t = initializeTweepy()
   for uid in recipients:
     t.send_direct_message(uid, message)
@@ -126,7 +126,7 @@ def main():
   positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
 
   postTweet(priceReport, image=priceChart)
-  sendDirectMessage(positionReport, recipients=[os.getenv('BOT_ID')])
+  sendDirectMessage(positionReport, recipients=[os.getenv('TWITTER_BOT_ID')])
   if ((delta >= int(os.getenv('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.getenv('DELTA_ALERT_LOWER_THRESHOLD')))):
     personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
     sendText(personalDeltaStatement+positionReport)
