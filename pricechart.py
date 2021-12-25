@@ -15,7 +15,7 @@ def generatePriceChart(hour, price):
       plt.plot(hour[i], price[i], pointStyle, markersize=8)
 
   plt.title("Puppy Coin Pupdates")
-  plt.xlabel("Time")
+  plt.xlabel("Time (EST)")
   plt.ylabel("Price per 1 million $PUP (USD)")
   plt.xticks(hour)
   plt.grid()
