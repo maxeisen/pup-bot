@@ -42,7 +42,7 @@ def initializeWebdriver():
   return (driver, wait)
 
 # Pull required conversion values (retry until successful haha)
-@retry()
+# @retry()
 def getConversionValues(fiats=constants.FIATS, preferredFIAT=constants.PREFERRED_FIAT, publicFIAT = constants.PUBLIC_FIAT, contract=constants.CONTRACT_ADDRESS):
   driver, wait = initializeWebdriver()
   reqURL = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms='+fiats
