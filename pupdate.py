@@ -133,4 +133,4 @@ def main():
     sendDirectMessage(personalDeltaStatement+positionReport)
 
 if __name__ == "__main__":
-  main()
+  #main()
