@@ -147,7 +147,6 @@ def main():
 
   personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, False)
   sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
-  delta = 1000
   if ((delta >= int(os.environ.get('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.environ.get('DELTA_ALERT_LOWER_THRESHOLD')))):
     generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, True)
     sendDirectMessage(personalPositionReport)
