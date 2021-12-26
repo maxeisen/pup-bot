@@ -21,7 +21,7 @@ RALLY_PHRASES = [
   "Get your spacesuits ready HODLers! 🧑‍🚀",
   "See you all on the moon! 🌝",
   "@elonmusk we're beating you to Mars! 🚀",
-  "@BarstoolPrez shoulda listened to the hype! 🙄",
+  "@stoolpresidente shoulda listened to the hype! 🙄",
   "@GoingParabolic it's happening. 🚀",
   "@cz_binance you should probably list us 🤔",
   "@coingecko let's be friends 🤝"
@@ -35,7 +35,7 @@ STABLE_PHRASES = [
   "Become a pupillionaire! 🐶🤑",
   "@coingecko list us before moon 🌝",
   "@elonmusk there's a new memecoin in town 🐶",
-  "@BarstoolPrez hmu",
+  "@stoolpresidente hmu",
 ]
 DIP_PHRASES = [
   "Get it while it's cheap! 🤑",
