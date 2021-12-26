@@ -135,7 +135,7 @@ def main():
   lastReferenceValue, hours, prices = getPreviousPrices()
   currentReferenceValue = str('{0:.2f}'.format(constants.REFERENCE_AMOUNT/(ethToPUP/ethToPubFIAT)))
   prices.append(float(currentReferenceValue))
-  currentHour = constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))] if (os.environ.get('ENVIRONMENT') == 'dev') else constants.UTC_CLOCK_TIMES[int(datetime.now().strftime("%H"))] #Remove +1
+  currentHour = constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))] if (os.environ.get('ENVIRONMENT') == 'dev') else constants.UTC_CLOCK_TIMES[int(datetime.now().strftime("%H"))]
   hours.append(currentHour)
   delta = ((float(currentReferenceValue)-lastReferenceValue)/lastReferenceValue)*100
   
@@ -145,8 +145,8 @@ def main():
   if (os.environ.get('ENVIRONMENT') == 'prod'):
     postTweet(priceReport, image=priceChart) # !!! Post to @PuppyCoinBot
 
-  # personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, False)
-  # sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
+  personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, False)
+  sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
 
   if ((delta >= int(os.environ.get('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.environ.get('DELTA_ALERT_LOWER_THRESHOLD')))):
     generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, True)
