@@ -13,6 +13,7 @@ from retry import retry
 import tweepy
 import requests
 import random
+import json
 import constants
 from pricechart import generatePriceChart
 
@@ -90,6 +91,22 @@ def generatePriceReport(delta, currentReferenceValue):
   priceReport = priceStatement+deltaStatement+closingStatement+" #PuppyCoin"
   return(priceReport)
 
+# Generate position reports
+def generateAndSendPositionReports(delta, positions, ethToPUP, ethToPrefFIAT, massSend):
+  if massSend:
+    for holder, position in positions.items():
+      positionValue = str('{0:.2f}'.format(int(position)/(ethToPUP/ethToPrefFIAT)))
+      positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
+      personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
+      finalPositionReport = personalDeltaStatement+positionReport
+      sendText(finalPositionReport, holder)
+  else:
+    positionValue = str('{0:.2f}'.format(int(positions[os.environ.get('PERSONAL_NUMBER')])/(ethToPUP/ethToPrefFIAT)))
+    positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
+    personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
+    finalPositionReport = personalDeltaStatement+positionReport
+    return finalPositionReport
+
 # Post tweet
 def postTweet(tweet, image=None):
   t = initializeTweepy()
@@ -101,11 +118,10 @@ def postTweet(tweet, image=None):
     print("Tweeted: "+tweet)
 
 # Send text message
-def sendText(message):
+def sendText(message, recipient=os.environ.get('PERSONAL_NUMBER')):
   client = initializeTwilio()
-  for num in (os.environ.get('TWILIO_RECIPIENT_NUMBERS')).split(','):
-    client.messages.create(body=message,from_=os.environ.get('TWILIO_PHONE'),to=num)
-    print("Sent to "+num+": " + message)
+  client.messages.create(body=message,from_=os.environ.get('TWILIO_PHONE'),to=recipient)
+  print("Sent to "+recipient+": " + message)
 
 # Send direct message on Twitter
 def sendDirectMessage(message, recipients=(os.environ.get('TWITTER_RECIPIENT_IDS')).split(',')):
@@ -126,15 +142,15 @@ def main():
   priceChart = generatePriceChart(hours, prices)
   priceReport = generatePriceReport(delta, currentReferenceValue)
 
-  positionValue = str('{0:.2f}'.format(int(os.environ.get('PERSONAL_HOLDINGS'))/(ethToPUP/ethToPrefFIAT)))
-  positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
+  if (os.environ.get('ENVIRONMENT') == 'prod'):
+    postTweet(priceReport, image=priceChart) # !!! Post to @PuppyCoinBot
 
-  postTweet(priceReport, image=priceChart)
-  sendDirectMessage(positionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
+  personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, False)
+  sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
+  delta = 1000
   if ((delta >= int(os.environ.get('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.environ.get('DELTA_ALERT_LOWER_THRESHOLD')))):
-    personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
-    sendText(personalDeltaStatement+positionReport)
-    sendDirectMessage(personalDeltaStatement+positionReport)
+    generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, True)
+    sendDirectMessage(personalPositionReport)
 
 if __name__ == "__main__":
   main()
