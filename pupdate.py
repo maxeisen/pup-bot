@@ -15,6 +15,7 @@ import requests
 import random
 import json
 import constants
+import time
 from pricechart import generatePriceChart
 
 # Load environment variables
@@ -46,7 +47,7 @@ def initializeWebdriver():
   return (driver, wait)
 
 # Pull required conversion values (retry 10 times)
-@retry(tries=10, delay=5)
+# @retry(tries=10, delay=5)
 def getConversionValues(fiats=constants.FIATS, preferredFIAT=constants.PREFERRED_FIAT, publicFIAT = constants.PUBLIC_FIAT, contract=constants.CONTRACT_ADDRESS):
   driver, wait = initializeWebdriver()
   reqURL = 'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms='+fiats
@@ -55,12 +56,30 @@ def getConversionValues(fiats=constants.FIATS, preferredFIAT=constants.PREFERRED
   ethToPubFIAT = r.json()[publicFIAT]
   print("1 ETH is $"+str(ethToPrefFIAT)+" "+preferredFIAT+" or $"+str(ethToPubFIAT)+" "+publicFIAT)
   uniswapURL = 'https://app.uniswap.org/#/add/ETH/'+contract+'/10000'
-  driver.get(uniswapURL)
-  pupPerEthElement = wait.until(EC.visibility_of_element_located((By.XPATH, "//html/body/div[1]/div/div[2]/div[4]/main/div[2]/div/div[4]/div[1]/div[2]/div[2]/span")))
-  ethToPUP = float(pupPerEthElement.get_attribute("innerHTML").splitlines()[0])
+  uniswapBackupURL = 'https://app.uniswap.org/#/swap?inputCurrency=ETH&outputCurrency='+contract+'&chain=mainnet'
+  ethToPUP = None
+  insufficientLiquidity = False
+  try:
+    driver.get(uniswapURL)
+    pupPerEthElement = wait.until(EC.visibility_of_element_located((By.XPATH, "//html/body/div[1]/div/div[2]/div[4]/main/div[2]/div/div[4]/div[1]/div[2]/div[2]/span")))
+    ethToPUP = float(pupPerEthElement.get_attribute("innerHTML").splitlines()[0])
+    currentReferenceValue = str('{0:.2f}'.format(constants.REFERENCE_AMOUNT/(ethToPUP/ethToPubFIAT)))
+  except: # Backup using swap interface
+    print("\nInsufficient liquidity likely. Resorting to swap interface for price retrieval.")
+    insufficientLiquidity = True
+    driver.quit()
+    driver, wait = initializeWebdriver() # Reinitialize web driver for some reason
+    driver.get(uniswapBackupURL)
+    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, "ImportToken__Wrapper-sc-u4rhvt-0")))
+    driver.execute_script('document.querySelector("body > reach-portal:nth-child(9) > div:nth-child(3) > div > div > div > div > div.Column__AutoColumn-sc-1r2yyln-2.bgqSvf > button").click()')
+    time.sleep(2)
+    pupInputElement = wait.until(EC.visibility_of_element_located((By.XPATH, "/html/body/div[1]/div/div[2]/main/div[2]/div/div[1]/div[3]/div/div[1]/input")))
+    pupInputElement.send_keys(str(constants.REFERENCE_AMOUNT))
+    pupToUsdElement = wait.until(EC.visibility_of_element_located((By.XPATH, "/html/body/div[1]/div/div[2]/main/div[2]/div/div[1]/div[1]/div/div[2]/div/div[1]/div/span")))
+    currentReferenceValue = str('{0:.2f}'.format(float(pupToUsdElement.get_attribute("innerHTML").splitlines()[0])))
   driver.quit()
-  print("1 ETH is "+str(ethToPUP)+" PUP")
-  return (ethToPubFIAT, ethToPrefFIAT, ethToPUP)
+  print("1 million PUP is worth $"+currentReferenceValue+" USD")
+  return (currentReferenceValue, ethToPUP, ethToPrefFIAT, insufficientLiquidity)
 
 # Get previous value of 1000000 PUP from last Tweet
 def getPreviousPrices():
@@ -92,16 +111,16 @@ def generatePriceReport(delta, currentReferenceValue):
   return(priceReport)
 
 # Generate position reports
-def generateAndSendPositionReports(delta, positions, ethToPUP, ethToPrefFIAT, massSend):
+def generateAndSendPositionReports(delta, positions, currentReferenceValue, ethToPUP, ethToPrefFIAT, massSend):
   if massSend:
     for holder, position in positions.items():
-      positionValue = str('{0:.2f}'.format(int(position)/(ethToPUP/ethToPrefFIAT)))
+      positionValue = str('{0:.2f}'.format(int(position)/(ethToPUP/ethToPrefFIAT))) if ethToPUP else str('{0:.2f}'.format((currentReferenceValue*(int(position)/constants.REFERENCE_AMOUNT))))
       positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
       personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
       finalPositionReport = personalDeltaStatement+positionReport
       sendText(finalPositionReport, holder)
   else:
-    positionValue = str('{0:.2f}'.format(int(positions[os.environ.get('PERSONAL_NUMBER')])/(ethToPUP/ethToPrefFIAT)))
+    positionValue = str('{0:.2f}'.format(int(positions[os.environ.get('PERSONAL_NUMBER')])/(ethToPUP/ethToPrefFIAT))) if ethToPUP else str('{0:.2f}'.format((currentReferenceValue*(int(positions[os.environ.get('PERSONAL_NUMBER')])/constants.REFERENCE_AMOUNT))))
     positionReport = "Your $PUP is now worth $"+positionValue+" "+constants.PREFERRED_FIAT+" before fees"
     personalDeltaStatement = 'PUPDATE: '+str('{0:.2f}'.format(delta))+"% change in the last hour! "
     finalPositionReport = personalDeltaStatement+positionReport
@@ -131,9 +150,8 @@ def sendDirectMessage(message, recipients=(os.environ.get('TWITTER_RECIPIENT_IDS
     print("Sent to "+uid+": " + message)
 
 def main():
-  ethToPubFIAT, ethToPrefFIAT, ethToPUP = getConversionValues()
+  currentReferenceValue, ethToPUP, ethToPrefFIAT, insufficientLiquidity = getConversionValues()
   lastReferenceValue, hours, prices = getPreviousPrices()
-  currentReferenceValue = str('{0:.2f}'.format(constants.REFERENCE_AMOUNT/(ethToPUP/ethToPubFIAT)))
   prices.append(float(currentReferenceValue))
   currentHour = constants.EST_CLOCK_TIMES[int(datetime.now().strftime("%H"))] if (os.environ.get('ENVIRONMENT') == 'dev') else constants.UTC_CLOCK_TIMES[int(datetime.now().strftime("%H"))]
   hours.append(currentHour)
@@ -145,12 +163,16 @@ def main():
   if (os.environ.get('ENVIRONMENT') == 'prod'):
     postTweet(priceReport, image=priceChart) # !!! Post to @PuppyCoinBot
 
-  personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, False)
-  sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')])
+  personalPositionReport = generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), float(currentReferenceValue), ethToPUP, ethToPrefFIAT, False)
+  print(personalPositionReport)
+  sendDirectMessage(personalPositionReport, recipients=[os.environ.get('TWITTER_BOT_ID')]) # Send to @PuppyCoinBot
 
   if ((delta >= int(os.environ.get('DELTA_ALERT_UPPER_THRESHOLD'))) or (delta <= int(os.environ.get('DELTA_ALERT_LOWER_THRESHOLD')))):
-    generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), ethToPUP, ethToPrefFIAT, True)
+    generateAndSendPositionReports(delta, json.loads(os.environ.get('PERSONAL_HOLDINGS')), float(currentReferenceValue), ethToPUP, ethToPrefFIAT, True)
     sendDirectMessage(personalPositionReport)
+
+  if (insufficientLiquidity):
+    sendDirectMessage("Insufficient ETH liquidity.", recipients=["23239605"]) # Send to @MaxEisen
 
 if __name__ == "__main__":
   main()
